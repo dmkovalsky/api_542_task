@@ -14,13 +14,13 @@ class JokesService {
     }
   }
 
-  Future<String> fetchRandomJoke(String category) async {
+  Future<Map<String, dynamic>> fetchRandomJoke(String category) async {
     final response = await http.get(
       Uri.parse('https://api.chucknorris.io/jokes/random?category=$category'),
     );
     if (response.statusCode == 200) {
       final jokeData = jsonDecode(response.body);
-      return jokeData['value'];
+      return jokeData;
     } else {
       throw Exception('Failed to load joke');
     }

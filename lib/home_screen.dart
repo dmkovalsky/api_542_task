@@ -12,7 +12,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   // state
-  Future<String>? _jokeFuture;
+  Future<Map<String, dynamic>>? _jokeDataFuture;
   late Future<List<dynamic>> _jokeCategoriesFuture;
 
   // controllers
@@ -22,6 +22,12 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _jokeCategoriesFuture = JokesService().fetchJokeCategories();
+  }
+
+  void _updateCategory(String category) {
+    setState(() {
+      _jokeDataFuture = JokesService().fetchRandomJoke(category);
+    });
   }
 
   @override
@@ -40,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           child: Center(
             child: Column(
-              spacing: 32,
+              spacing: 16,
               children: [
                 FutureBuilder(
                   future: _jokeCategoriesFuture,
@@ -71,17 +77,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       label: const Text('Choose category:'),
                       width: double.infinity,
                       onSelected: (value) {
-                        setState(() {
-                          _jokeFuture = JokesService().fetchRandomJoke(
-                            value ?? '',
-                          );
-                        });
+                        _updateCategory(value ?? '');
                       },
                       dropdownMenuEntries: [
                         for (final entry in getDropdownMenuEntrys()) entry,
                       ],
                     );
                   },
+                ),
+                Text(
+                  'Category: ${jokeCategoryController.text.toUpperCase()}',
+                  style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 Card(
                   child: Container(
@@ -94,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     alignment: Alignment.topCenter,
                     child: FutureBuilder(
-                      future: _jokeFuture,
+                      future: _jokeDataFuture,
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -104,19 +110,38 @@ class _HomeScreenState extends State<HomeScreen> {
                         } else if (!snapshot.hasData || snapshot.data == null) {
                           return Text('No joke found');
                         }
+                        final Map<String, dynamic> jokeData =
+                            snapshot.data ?? {};
                         final String jokeFuture =
-                            snapshot.data ?? 'No joke found';
+                            jokeData['value'] ?? 'No joke found';
 
-                        return Text(
-                          jokeFuture,
-                          style: TextStyle(
-                            color: Colors.purple,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              jokeFuture,
+                              style: TextStyle(
+                                color: Colors.purple,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Image.network(
+                              jokeData['icon_url'] ?? '',
+                              width: 60,
+                            ),
+                          ],
                         );
                       },
                     ),
+                  ),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    _updateCategory(jokeCategoryController.text);
+                  },
+                  child: Text(
+                    'Get one more ${jokeCategoryController.text.toUpperCase()} - joke',
                   ),
                 ),
               ],
