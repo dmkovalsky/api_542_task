@@ -14,6 +14,8 @@ class _HomeScreenState extends State<HomeScreen> {
   // state
   Future<Map<String, dynamic>>? _jokeDataFuture;
   late Future<List<dynamic>> _jokeCategoriesFuture;
+  final String _jokeInitialCategory =
+      'dev'; // Initial category to fetch jokes from
 
   // controllers
   final TextEditingController jokeCategoryController = TextEditingController();
@@ -22,6 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _jokeCategoriesFuture = JokesService().fetchJokeCategories();
+    _jokeDataFuture = JokesService().fetchRandomJoke(_jokeInitialCategory);
   }
 
   void _updateCategory(String category) {
@@ -72,12 +75,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     }
 
                     return DropdownMenu(
-                      initialSelection: '',
+                      initialSelection: _jokeInitialCategory,
                       controller: jokeCategoryController,
                       label: const Text('Choose category:'),
                       width: double.infinity,
                       onSelected: (value) {
-                        _updateCategory(value ?? '');
+                        _updateCategory(value ?? _jokeInitialCategory);
                       },
                       dropdownMenuEntries: [
                         for (final entry in getDropdownMenuEntrys()) entry,
@@ -152,7 +155,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 FilledButton(
                   onPressed: jokeCategoryController.text.isEmpty
-                      ? null
+                      ? () {
+                          _updateCategory(_jokeInitialCategory);
+                        }
                       : () {
                           _updateCategory(jokeCategoryController.text);
                         },
