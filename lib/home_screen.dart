@@ -106,9 +106,23 @@ class _HomeScreenState extends State<HomeScreen> {
                             ConnectionState.waiting) {
                           return Center(child: CircularProgressIndicator());
                         } else if (snapshot.hasError) {
-                          return Text('Error: ${snapshot.error}');
+                          return Text(
+                            'Error: ${snapshot.error}',
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          );
                         } else if (!snapshot.hasData || snapshot.data == null) {
-                          return Text('No joke found');
+                          return Text(
+                            'Please choose category first',
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          );
                         }
                         final Map<String, dynamic> jokeData =
                             snapshot.data ?? {};
@@ -137,9 +151,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 FilledButton(
-                  onPressed: () {
-                    _updateCategory(jokeCategoryController.text);
-                  },
+                  onPressed: jokeCategoryController.text.isEmpty
+                      ? null
+                      : () {
+                          _updateCategory(jokeCategoryController.text);
+                        },
                   child: Text(
                     'Get one more ${jokeCategoryController.text.toUpperCase()} - joke',
                   ),
