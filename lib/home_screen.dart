@@ -24,6 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<List<String>>? _favoriteIds;
   IconData _favIcon = Icons.favorite_border;
+  bool isFavorite = false;
 
   // controllers
   final TextEditingController jokeCategoryController = TextEditingController();
@@ -180,36 +181,49 @@ class _HomeScreenState extends State<HomeScreen> {
                                   } else if (!snapshot.hasData ||
                                       snapshot.data == null ||
                                       snapshot.data!.isEmpty) {
-                                    return throw Exception(
-                                      'No favorites found',
+                                    final jokeId = jokeData['id'] ?? '';
+
+                                    return IconButton(
+                                      onPressed: () async {
+                                        await widget.localDB.addJokeId(jokeId);
+                                        setState(() {
+                                          isFavorite = true;
+                                          _favoriteIds = _loadFavoritesIds();
+                                          _favIcon = Icons.favorite;
+                                        });
+                                      },
+                                      icon: Icon(
+                                        _favIcon,
+                                        size: 32,
+                                        color: Colors.red,
+                                      ),
                                     );
                                   }
 
+                                  final jokeId = jokeData['id'] ?? '';
+                                  final favoriteIds = snapshot.data ?? [];
+                                  if (favoriteIds.contains(jokeId)) {
+                                    isFavorite = true;
+                                    _favIcon = Icons.favorite;
+                                  } else {
+                                    isFavorite = false;
+                                    _favIcon = Icons.favorite_border;
+                                  }
+
                                   return IconButton(
-                                    onPressed: () async {
-                                      final jokeId = jokeData['id'] ?? '';
-                                      debugPrint(jokeId.toString());
-                                      final favoriteIds = snapshot.data ?? [];
-                                      if (favoriteIds.contains(jokeId)) {
-                                        final index = favoriteIds.indexOf(
-                                          jokeId,
-                                        ); // Get the index of the joke
-                                        await widget.localDB.deleteJokeId(
-                                          index,
-                                        );
-                                        setState(() {
-                                          _favIcon = Icons.favorite_border;
-                                        });
-                                      } else {
-                                        await widget.localDB.addJokeId(jokeId);
-                                        setState(() {
-                                          _favIcon = Icons.favorite;
-                                        });
-                                      }
-                                      setState(() {
-                                        _favoriteIds = _loadFavoritesIds();
-                                      });
-                                    },
+                                    onPressed: isFavorite
+                                        ? null
+                                        : () async {
+                                            await widget.localDB.addJokeId(
+                                              jokeId,
+                                            );
+
+                                            setState(() {
+                                              isFavorite = true;
+                                              _favoriteIds =
+                                                  _loadFavoritesIds();
+                                            });
+                                          },
                                     icon: Icon(
                                       _favIcon,
                                       size: 32,
