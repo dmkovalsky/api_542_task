@@ -1,9 +1,13 @@
+import 'package:api_542_task/data/database_repository.dart';
 import 'package:api_542_task/favorites_screen.dart';
 import 'package:api_542_task/jokes_service.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({
+  final DatabaseRepository localDB;
+
+  const HomeScreen(
+    this.localDB, {
     super.key,
   });
 

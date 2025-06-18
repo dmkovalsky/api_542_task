@@ -1,8 +1,12 @@
+import 'package:api_542_task/data/database_repository.dart';
 import 'package:api_542_task/home_screen.dart';
 import 'package:flutter/material.dart';
 
 class MyApp extends StatelessWidget {
-  const MyApp({
+  final DatabaseRepository localDB;
+
+  const MyApp(
+    this.localDB, {
     super.key,
   });
 
@@ -22,7 +26,7 @@ class MyApp extends StatelessWidget {
           ? ThemeMode.dark
           : ThemeMode.light,
       debugShowCheckedModeBanner: false,
-      home: HomeScreen(),
+      home: HomeScreen(localDB),
     );
   }
 }
