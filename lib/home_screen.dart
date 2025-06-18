@@ -22,6 +22,9 @@ class _HomeScreenState extends State<HomeScreen> {
   final String _jokeInitialCategory =
       'dev'; // Initial category to fetch jokes from
 
+  Future<List<String>>? _favoriteIds;
+  IconData _favIcon = Icons.favorite_border;
+
   // controllers
   final TextEditingController jokeCategoryController = TextEditingController();
 
@@ -30,12 +33,21 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _jokeCategoriesFuture = JokesService().fetchJokeCategories();
     _jokeDataFuture = JokesService().fetchRandomJoke(_jokeInitialCategory);
+    _favoriteIds = _loadFavoritesIds();
   }
 
   void _updateCategory(String category) {
     setState(() {
       _jokeDataFuture = JokesService().fetchRandomJoke(category);
     });
+  }
+
+  Future<List<String>> _loadFavoritesIds() async {
+    List<String> jokesIds = await widget.localDB.getJokesIds();
+    if (jokesIds.isEmpty) {
+      return [];
+    }
+    return jokesIds;
   }
 
   @override
@@ -150,9 +162,61 @@ class _HomeScreenState extends State<HomeScreen> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              Image.network(
-                                jokeData['icon_url'] ?? '',
-                                width: 60,
+                              FutureBuilder(
+                                future: _favoriteIds,
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return CircularProgressIndicator();
+                                  } else if (snapshot.hasError) {
+                                    return Text(
+                                      'Error: ${snapshot.error}',
+                                      style: TextStyle(
+                                        color: Colors.red,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    );
+                                  } else if (!snapshot.hasData ||
+                                      snapshot.data == null ||
+                                      snapshot.data!.isEmpty) {
+                                    return throw Exception(
+                                      'No favorites found',
+                                    );
+                                  }
+
+                                  return IconButton(
+                                    onPressed: () async {
+                                      final jokeId = jokeData['id'] ?? '';
+                                      debugPrint(jokeId.toString());
+                                      final favoriteIds = snapshot.data ?? [];
+                                      if (favoriteIds.contains(jokeId)) {
+                                        final index = favoriteIds.indexOf(
+                                          jokeId,
+                                        ); // Get the index of the joke
+                                        await widget.localDB.deleteJokeId(
+                                          index,
+                                        );
+                                        setState(() {
+                                          _favIcon = Icons.favorite_border;
+                                        });
+                                      } else {
+                                        await widget.localDB.addJokeId(jokeId);
+                                        setState(() {
+                                          _favIcon = Icons.favorite;
+                                        });
+                                      }
+                                      setState(() {
+                                        _favoriteIds = _loadFavoritesIds();
+                                      });
+                                    },
+                                    icon: Icon(
+                                      _favIcon,
+                                      size: 32,
+                                      color: Colors.red,
+                                    ),
+                                  );
+                                },
                               ),
                             ],
                           );
@@ -176,7 +240,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => FavoritesScreen(),
+                          builder: (context) => FavoritesScreen(widget.localDB),
                         ),
                       );
                     },

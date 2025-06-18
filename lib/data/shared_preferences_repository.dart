@@ -31,4 +31,10 @@ class SharedPreferencesRepository implements DatabaseRepository {
     final jokes = prefs.getStringList('jokes') ?? [];
     return jokes;
   }
+
+  @override
+  Future<void> clearJokesIds() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('jokes');
+  }
 }

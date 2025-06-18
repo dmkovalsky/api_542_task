@@ -7,4 +7,7 @@ abstract class DatabaseRepository {
 
   // Löscht ein Joke ID an einem bestimmten Index.
   Future<void> deleteJokeId(int index);
+
+  // Löscht alle Ids: clearJokesIds
+  Future<void> clearJokesIds();
 }
